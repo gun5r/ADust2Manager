@@ -1,0 +1,31 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+# runtime state and caches
+work/
+workspace/
+config.json
+config.json.bak
+queue_state.json
+characters.json
+*.log
+*.db
+# frontend (later phases)
+node_modules/
+dist/
+*.db-shm
+*.db-wal
+
+# Built from the game by Tools > Set up everything (nothing derived from the game is bundled)
+generated/
+cache/
+data/
+libs/
+platform-tools/
+build/
+dist-app*/
+
+# The Spine web player is fetched on first start by core/spine_player.py (it is Esoteric Software's, not part of this repository)
+tmp/
+Mods/

@@ -1,0 +1,123 @@
+/* Design tokens: the ONLY place colours are chosen. Components use `var(--…)`; never write a colour twice.
+   Themes: Graphite (default, below in :root) and Black (`:root[data-theme='black']`), switched in Settings.
+   Re-toning a theme = its surface steps, borders, text steps and --primary* (a new theme = one more block). */
+
+/* ---------- shared by every theme ---------- */
+:root {
+  --fs-xs: 0.7rem; /* captions, tiny labels: the minimum anywhere */
+  --fs-sm: 0.75rem; /* secondary text, dense buttons, tags */
+  --fs-md: 0.84rem; /* body, buttons, list rows */
+  --fs-lg: 0.95rem; /* section headers, key values */
+  --fs-xl: 1.05rem; /* panel and dialog titles */
+  --fs-2xl: 1.4rem; /* big titles */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* translucent white steps for hover, tinted fills and hairlines on any surface */
+  --tint-1: rgba(255, 255, 255, 0.04);
+  --tint-2: rgba(255, 255, 255, 0.07);
+  --tint-3: rgba(255, 255, 255, 0.11);
+  --tint-4: rgba(255, 255, 255, 0.18);
+  --scrim: rgba(0, 0, 0, 0.85); /* behind dialogs */
+  --scrim-soft: rgba(0, 0, 0, 0.62); /* small panels laid over the preview canvas */
+  --on-primary: #fff;
+  --lift: translateY(-2px); /* a card lifted on hover (with --shadow-card) */
+  --selected-bg: color-mix(in srgb, var(--primary) 14%, transparent); /* the tint of anything picked */
+
+  /* state colours: -text for text on a dark surface, the plain one for fills and borders (use color-mix for soft backgrounds) */
+  --ok: #22c55e;
+  --ok-text: #4ade80;
+  --warn: #f59e0b;
+  --warn-text: #fbbf24;
+  --danger: #ef4444;
+  --danger-text: #f87171;
+  --accent: var(--ok); /* a folder tab with its own colour overrides this on the tab */
+  --warning: var(--warn);
+
+  /* mod categories (tags, badges, filter pills, viewer lists) */
+  --cat-idle: #5eead4;
+  --cat-cut: #fbbf24;
+  --cat-dating: #f472b6;
+  --cat-illust: #fb923c;
+  --cat-multi: #c084fc;
+  --cat-other: #a78bfa;
+  --cat-merged: var(--ok-text);
+  --cat-installed: var(--ok);
+  --cat-queued: #f472b6;
+
+  /* the processing queue's zones, so its panels tell apart at a glance */
+  --zone-cache: #2dd4bf; /* prepared mods waiting in the cache */
+  --zone-ready: var(--ok); /* ready to transfer */
+  --zone-bundled: var(--cat-multi); /* several mods sharing one game bundle (assembled on transfer) */
+  --zone-standalone: var(--primary); /* a bundle of their own */
+}
+
+/* ---------- Graphite (default): lifted charcoal with a soft blue accent ---------- */
+:root {
+  /* depth comes from these steps: page < side panels < cards/rows < hover/raised */
+  --bg-dark: #0b0c0f; /* the page: clearly darker than the panels so they stand out */
+  --surface-1: #1a1c22;
+  --surface-2: #22252c;
+  --surface-3: #2c303a;
+  --bg-card: var(--surface-2);
+  --bg-card-hover: var(--surface-3);
+  --surface-header: var(--bg-dark);
+  --surface-dialog: #0d0e12; /* the base of a dialog */
+  --viewer-bg: var(--surface-1); /* the preview window */
+  --surface-panel: #1c1f26; /* a panel / card on a dialog: LIGHTER than the dialog, so side-by-side panels read as separate */
+  --surface-pill: var(--surface-2);
+  --surface-row: var(--surface-2);
+  --border-subtle: rgba(255, 255, 255, 0.11);
+  --border-focus: rgba(255, 255, 255, 0.3);
+
+  --text-main: #f4f5f7;
+  --text-muted: #bcc0c9;
+  --text-dim: #9096a3;
+
+  --primary: #5b9bff;
+  --primary-rgb: 91, 155, 255;
+  --primary-hover: #7fb0ff;
+  /* filled buttons: white text needs the deeper blue (4.7:1); --primary stays for text, borders and rings */
+  --primary-solid: #2f6fe0;
+  --primary-solid-hover: #2b66d1;
+
+  --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 8px 20px -8px rgba(0, 0, 0, 0.6); /* a card lifted on hover */
+  --page-glow: radial-gradient(900px 460px at 12% -12%, rgba(var(--primary-rgb), 0.1), transparent 62%),
+    radial-gradient(800px 420px at 100% 110%, rgba(139, 92, 246, 0.06), transparent 62%);
+  --viewport-1: #23262d; /* the preview canvas' default background */
+  --viewport-2: #0b0c0f;
+}
+
+/* ---------- Black: the pure-black minimal look ---------- */
+:root[data-theme='black'] {
+  --bg-dark: #000;
+  --surface-1: #0e0e0e;
+  --surface-2: #151515;
+  --surface-3: #1b1b1b;
+  --border-subtle: rgba(255, 255, 255, 0.13);
+  --border-focus: rgba(255, 255, 255, 0.32);
+  --surface-dialog: #000; /* settings, queue and the other windows */
+  --surface-panel: #161616;
+  --viewer-bg: #000; /* the preview window and its panels */
+
+  --text-main: #fafafa;
+  --text-muted: #b8b8b8;
+  --text-dim: #9a9a9a;
+
+  --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
+  --primary-hover: #60a5fa;
+  --primary-solid: #2563eb;
+  --primary-solid-hover: #1d4ed8;
+
+  --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.9);
+  --shadow-card: 0 8px 20px -8px rgba(0, 0, 0, 0.9);
+  --page-glow: none;
+  --viewport-1: #000;
+  --viewport-2: #000;
+}

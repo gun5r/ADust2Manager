@@ -1,0 +1,19 @@
+{
+  "_about": "What the game's own data does not say, per scene (asset key). nextPhase: '<phase>_<spot id>' of a phase-ending spot -> the phase it leads to when that is not simply the next one (a gyro spot's id is its rule's id). soundFrom: '<mix|motion><phase>_<spot>' -> the spots (or clips) whose sounds it plays. Edit here to teach the simulator a scene; nothing in the code names a scene.",
+  "illust_dating11": {
+    "nextPhase": { "2_2": 4, "3_22": 2, "4_24": 2 }
+  },
+  "illust_dating12": {
+    "soundFrom": { "motion1_35": ["motion1_32"] }
+  },
+  "illust_dating18": {
+    "nextPhase": { "2_10": 1, "3_2": 5, "4_1": 6 },
+    "soundFrom": {
+      "mix7_9": ["mix2_4"], "mix7_6": ["mix2_1"], "mix7_10": ["mix2_5"], "mix7_12": ["mix2_9"], "mix7_11": ["mix2_8"], "mix7_7": ["mix2_2"], "mix7_8": ["mix2_3"],
+      "mix6_38": ["mix1_4"], "mix6_39": ["mix1_11"], "mix6_40": ["mix1_12"], "mix6_35": ["mix1_1"], "mix6_41": ["mix1_13"], "mix6_36": ["mix1_2"], "mix6_37": ["mix1_3"],
+      "mix6_15": ["mix6_14"], "mix6_16": ["mix6_14"], "mix6_17": ["mix6_14"], "mix6_18": ["mix6_14"], "mix6_19": ["mix6_14"],
+      "mix6_22": ["mix6_20"], "mix6_23": ["mix6_20"], "mix6_24": ["mix6_20"], "mix6_25": ["mix6_20"], "mix6_26": ["mix6_20"], "mix6_27": ["mix6_20"], "mix6_28": ["mix6_20"],
+      "mix6_9": ["mix6_8"], "mix6_10": ["mix6_8"], "mix6_11": ["mix6_8"], "mix6_12": ["mix6_8"], "mix6_13": ["mix6_8"]
+    }
+  }
+}

@@ -1,0 +1,76 @@
+/* One look for every button, field and button row inside the Tools window (ToolsModal and the tool panels it hosts). */
+.tool-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; height: 38px; min-width: 8.5rem; padding: 0 1.1rem; font-size: var(--fs-md); font-weight: 600; white-space: nowrap;
+  color: var(--text-main); background: transparent; border: 1px solid var(--tint-4); border-radius: var(--radius-sm); cursor: pointer; transition: border-color 0.12s ease, background-color 0.12s ease; }
+.tool-btn:hover:not(:disabled) { background: var(--tint-3); border-color: var(--tint-4); }
+.tool-btn.primary { color: var(--on-primary); background: var(--primary-solid); border-color: transparent; }
+.tool-btn.primary:hover:not(:disabled) { background: var(--primary-solid-hover); border-color: transparent; }
+.tool-btn.danger { color: var(--danger); }
+.tool-btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 16%, transparent); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+.tool-btn.sm { height: 28px; width: auto; min-width: 0; padding: 0 0.7rem; font-size: var(--fs-sm); }
+.tool-btn:disabled { opacity: 0.45; cursor: default; }
+.tool-actions { display: flex; justify-content: flex-end; gap: 0.6rem; flex: none; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-subtle); }
+.tool-row { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+.tool-field { height: 36px; padding: 0 0.7rem; font-size: var(--fs-md); color: var(--text-main); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); outline: none; }
+.tool-field:focus { border-color: var(--primary); }
+.tool-field.sm { height: 28px; padding: 0 0.4rem; font-size: var(--fs-sm); }
+
+/* ---------- settings-style pages: a big section title, then a rounded card of rows (title and help on the left, the control on the right) ---------- */
+.s-page { display: flex; flex-direction: column; gap: 1.6rem; flex: 1; min-height: 0; overflow-y: auto; padding: 0.2rem 0.4rem 1rem 0.2rem; font-size: var(--fs-md); color: var(--text-muted); }
+.s-lead { max-width: 46rem; line-height: 1.5; }
+.s-section { display: flex; flex-direction: column; gap: 0.7rem; }
+.s-title { padding-left: 0.25rem; font-size: var(--fs-xl); font-weight: 700; color: var(--text-main); }
+.s-card { background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.s-row { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; min-height: 3.6rem; padding: 0.9rem 1.15rem; }
+.s-row { position: relative; transition: background 0.12s; }
+/* a row that is a label toggles its switch from anywhere on it: the whole row lights up */
+label.s-row { cursor: pointer; }
+label.s-row:hover:has(input:not(:disabled)) { background: var(--tint-2); }
+.s-text { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.s-text > strong { font-size: var(--fs-lg); font-weight: 600; color: var(--text-main); }
+.s-text > span { font-size: var(--fs-sm); line-height: 1.4; color: var(--text-muted); }
+.s-text > .warn { color: var(--warn-text); }
+.s-ctl { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+.s-ctl.grow, .s-ctl .grow { flex: 1; min-width: 0; }
+.s-value { font-weight: 600; color: var(--text-main); text-align: right; }
+.s-value.warn { color: var(--warn-text); }
+.s-row .tool-field { min-width: 12rem; }
+.s-row.stack { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+.s-row.stack .s-ctl { width: 100%; }
+/* a switch: the checkbox itself, so it keeps its label, keyboard use and state */
+input[type='checkbox'].s-switch { width: 42px; height: 24px; border-radius: 999px; border: 0; background-color: var(--tint-4); background-image: none; position: relative; transition: background-color 0.15s; }
+input[type='checkbox'].s-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--text-main); transition: transform 0.15s; }
+input[type='checkbox'].s-switch:checked { background-color: var(--primary-solid); background-image: none; }
+input[type='checkbox'].s-switch:checked::after { transform: translateX(18px); background: #fff; }
+/* a pair of choices (themes) */
+.s-choices { display: flex; gap: 0.6rem; }
+.s-choice { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem 0.45rem 0.5rem; font-weight: 600; color: var(--text-main); background: var(--tint-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.s-choice:hover { background: var(--tint-2); }
+.s-choice.on { border-color: var(--primary); background: var(--selected-bg); }
+/* steps / list rows inside a card */
+.s-step { display: flex; align-items: center; gap: 0.75rem; }
+.s-step .mark { width: 1.2rem; text-align: center; font-weight: 700; color: var(--text-dim); }
+.s-step.ok .mark { color: var(--ok-text); } .s-step.error .mark { color: var(--danger-text); } .s-step.run .mark { color: var(--primary); }
+.s-step.error .s-text > strong { color: var(--danger-text); }
+.s-list { list-style: none; margin: 0; padding: 0; }
+.s-list > li { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.15rem; }
+.s-list > li + li { border-top: 1px solid var(--border-subtle); }
+.s-progress { width: 100%; height: 8px; accent-color: var(--primary); }
+/* Panel with a pinned action bar: .s-page scrolls, .s-bar (the buttons) stays visible below it. */
+.s-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.s-bar { flex: none; display: flex; gap: 0.6rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; padding: 0.75rem 0.2rem 0; border-top: 1px solid var(--border-subtle); background: transparent; }
+.s-bar > .danger:first-child:not(:last-child) { margin-right: auto; }
+.s-actions { display: flex; justify-content: flex-end; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Scroll cue: the edges of a scrollable body fade into the dialog surface while more content lies beyond them (needs scroll-driven animations; elsewhere there is simply no fade). */
+@property --fade-top { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --fade-bot { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@keyframes cue-top { to { --fade-top: 48px; } }
+@keyframes cue-bot { from { --fade-bot: 48px; } to { --fade-bot: 0px; } }
+@supports (animation-timeline: scroll()) {
+  .s-page, .scroll-cue {
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top), #000 calc(100% - var(--fade-bot)), transparent 100%);
+    animation: cue-top linear both, cue-bot linear both;
+    animation-timeline: scroll(self), scroll(self);
+    animation-range: 0 48px, calc(100% - 48px) 100%;
+  }
+}

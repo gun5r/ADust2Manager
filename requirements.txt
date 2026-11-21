@@ -1,0 +1,11 @@
+# Runtime versions the manager is built and tested with.
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pillow==12.3.0
+UnityPy==1.25.3
+requests==2.34.2
+beautifulsoup4==4.15.0
+protobuf==7.36.2
+tqdm==4.70.1
+pystray==0.19.5
+dbus-fast==5.2.0; sys_platform == "linux"

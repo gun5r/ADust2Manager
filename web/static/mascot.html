@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BD2 Desktop Mascot</title>
+  <link rel="stylesheet" href="/static/libs/spine-player.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: transparent !important;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #mascotRoot {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #spineContainer,
+    .spine-player,
+    .spine-player-canvas,
+    .spine-player canvas {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: transparent !important;
+    }
+
+    /* Floating quick toolbar, only appears on hover */
+    .mascot-toolbar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 9999;
+      pointer-events: auto;
+    }
+
+    body:hover .mascot-toolbar {
+      opacity: 1;
+    }
+
+    .mascot-toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .mascot-slider-wrapper {
+      margin-right: 4px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 8px 5px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 90px;
+      width: 14px;
+    }
+
+    .mascot-vertical-slider {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      width: 8px;
+      height: 80px;
+      cursor: ns-resize;
+      outline: none;
+      accent-color: #38bdf8;
+      background: transparent;
+    }
+
+    .mascot-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+
+    .mascot-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mascot-btn.btn-active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.25);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    }
+
+    .mascot-select {
+      background: rgba(15, 23, 42, 0.88);
+      color: #38bdf8;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 3px 8px;
+      outline: none;
+      cursor: pointer;
+      max-width: 140px;
+      text-overflow: ellipsis;
+      transition: all 0.2s ease;
+    }
+    .mascot-select:hover {
+      border-color: #38bdf8;
+      background: rgba(15, 23, 42, 0.98);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+    .mascot-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .click-through-active {
+      pointer-events: none !important;
+    }
+
+    .spine-player-canvas {
+      background: transparent !important;
+    }
+
+    #spineContainer.framing-active {
+      cursor: grab !important;
+      outline: 2px dashed rgba(56, 189, 248, 0.5);
+      outline-offset: -4px;
+    }
+    #spineContainer.framing-dragging {
+      cursor: grabbing !important;
+    }
+
+    .mascot-resize-grip {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      color: #38bdf8;
+      font-size: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: nwse-resize;
+      z-index: 9999;
+      user-select: none;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+    .mascot-resize-grip:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: #38bdf8;
+      transform: scale(1.1);
+    }
+    #spineContainer.framing-active ~ #resizeGrip,
+    body:hover .mascot-resize-grip {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <div id="mascotRoot">
+    <div id="spineContainer"></div>
+
+    <div class="mascot-toolbar" id="mascotToolbar">
+      <div class="mascot-toolbar-row">
+        <select class="mascot-select" id="animSelect" title="Switch Animation">
+          <option value="">Animations...</option>
+        </select>
+        <button class="mascot-btn" id="btnToggleFollow" title="Toggle Camera Follow (Tracks character movement)">🎥</button>
+        <button class="mascot-btn" id="btnToggleFraming" title="Toggle Framing Mode (Drag to Pan, Scroll to Zoom Character)">🎯</button>
+        <button class="mascot-btn" id="btnClickThrough" title="Activate Click-Through (Clicks pass through to game/desktop)">👻</button>
+        <button class="mascot-btn" id="btnCloseMascot" title="Close Mascot">✕</button>
+      </div>
+      <div class="mascot-slider-wrapper" title="Drag to Resize Window">
+        <input type="range" id="sizeSlider" class="mascot-vertical-slider" min="0.4" max="2.5" step="0.05" value="1.0">
+      </div>
+    </div>
+
+    <!-- Manual Corner Resize Grip Handle -->
+    <div id="resizeGrip" class="mascot-resize-grip" title="Drag to Resize Window">⤡</div>
+  </div>
+
+  <script src="/static/libs/spine-player.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const mascotId = urlParams.get("id");
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s]);
+    }
+    let currentState = null;
+    let spinePlayer = null;
+
+    // Framing & Camera State
+    let isFramingMode = false;
+    let isFollowActive = false;
+    let currentAnimationName = "";
+    let charZoom = 1.0;
+    let panOffsetX = 0;
+    let panOffsetY = 0;
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let startPanOffsetX = 0;
+    let startPanOffsetY = 0;
+    let framingSaveTimer = null;
+    let lastAnimTrigger = 0;
+    let lastUserEditTime = 0;
+    let spineFrameCounter = 0;
+
+    function notifyAnimationAspect(animName) {
+      if (mascotId && animName) {
+        fetch(`/api/dmascot/update/${mascotId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ current_animation: animName })
+        }).catch(() => {});
+      }
+    }
+
+    function isBackgroundSlot(name) {
+      if (!name) return false;
+      const n = name.toLowerCase();
+      return n.startsWith("bg") || n.startsWith("bk") || n.includes(" bg") || n.includes("_bg") ||
+             n.includes("background") || n.includes("backdrop") || n.startsWith("env") ||
+             n.includes("stage") || n.includes("room") || n.includes("wall") ||
+             n.includes("scene") || n.includes("ground") || n.includes("floor") ||
+             n.includes("frame") || n.includes("window") || n.includes("gradient") ||
+             n.includes("overlay") || n.includes("back_") || n.includes("water") || n.includes("sky");
+    }
+
+    function isPointInPolygon(px, py, vertices) {
+      let inside = false;
+      for (let i = 0, j = vertices.length - 2; i < vertices.length; j = i, i += 2) {
+        const xi = vertices[i], yi = vertices[i + 1];
+        const xj = vertices[j], yj = vertices[j + 1];
+        const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function isPointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
+      const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
+      const d2 = (px - cx) * (by - cy) - (bx - cx) * (py - cy);
+      const d3 = (px - ax) * (cy - ay) - (cx - ax) * (py - ay);
+      const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+      const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+      return !(hasNeg && hasPos);
+    }
+
+    function getWorldPoint(player, clientX, clientY, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const cam = player?.sceneRenderer?.camera;
+      if (!cam || rect.width <= 0 || rect.height <= 0) return null;
+
+      const screenX = clientX - rect.left;
+      const screenY = clientY - rect.top;
+      const nx = (screenX / rect.width) * 2 - 1;
+      const ny = 1 - 2 * (screenY / rect.height);
+
+      return {
+        x: nx * (cam.viewportWidth / 2) * cam.zoom + cam.position.x,
+        y: ny * (cam.viewportHeight / 2) * cam.zoom + cam.position.y
+      };
+    }
+
+    function computeTrimmedBounds(skeleton, excludeFullSizeBackdrops = true) {
+      if (!skeleton) return null;
+      const slots = skeleton.drawOrder || skeleton.slots || [];
+      if (!slots.length) return null;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      let hasValid = false;
+      for (const slot of slots) {
+        const slotName = (slot.data && slot.data.name) || "";
+        if (isBackgroundSlot(slotName) || (slot.color && slot.color.a <= 0)) continue;
+        const attachment = slot.getAttachment();
+        if (!attachment || typeof attachment.computeWorldVertices !== "function") continue;
+        const attName = (attachment.name || "").toLowerCase();
+        if (isBackgroundSlot(attName)) continue;
+        if (attachment.color && attachment.color.a <= 0) continue;
+
+        let verts = null;
+        try {
+          if (attachment.worldVerticesLength) {
+            const count = attachment.worldVerticesLength;
+            verts = new Float32Array(count);
+            attachment.computeWorldVertices(slot, 0, count, verts, 0, 2);
+          } else {
+            verts = new Float32Array(8);
+            attachment.computeWorldVertices(slot, verts, 0, 2);
+          }
+        } catch {
+          continue;
+        }
+        if (!verts) continue;
+
+        if (excludeFullSizeBackdrops) {
+          let aMinX = Infinity, aMaxX = -Infinity, aMinY = Infinity, aMaxY = -Infinity;
+          for (let i = 0; i < verts.length; i += 2) {
+            const x = verts[i], y = verts[i + 1];
+            if (x < aMinX) aMinX = x;
+            if (x > aMaxX) aMaxX = x;
+            if (y < aMinY) aMinY = y;
+            if (y > aMaxY) aMaxY = y;
+          }
+          if ((aMaxX - aMinX) > 1500 && (aMaxY - aMinY) > 900) {
+            continue;
+          }
+        }
+
+        for (let i = 0; i < verts.length; i += 2) {
+          const x = verts[i], y = verts[i + 1];
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+          hasValid = true;
+        }
+      }
+      if (!hasValid || minX >= maxX || minY >= maxY) return null;
+      const pad = 30;
+      const width = (maxX - minX) + pad * 2;
+      const height = (maxY - minY) + pad * 2;
+      return {
+        offset: { x: minX - pad, y: minY - pad },
+        size: { x: width, y: height, width: width, height: height },
+        centerX: (minX + maxX) / 2,
+        centerY: (minY + maxY) / 2
+      };
+    }
+
+    function isCharacterHit(player, clientX, clientY, canvas) {
+      const skeleton = player?.skeleton;
+      const cam = player?.sceneRenderer?.camera;
+      if (!skeleton || !cam || (skeleton.color && skeleton.color.a <= 0)) return false;
+
+      const worldPt = getWorldPoint(player, clientX, clientY, canvas);
+      if (!worldPt) return false;
+      const { x: worldX, y: worldY } = worldPt;
+
+      const drawOrder = skeleton.drawOrder || skeleton.slots || [];
+      for (let i = drawOrder.length - 1; i >= 0; i--) {
+        const slot = drawOrder[i];
+        if (!slot) continue;
+        const slotName = (slot.data && slot.data.name) || "";
+        if (isBackgroundSlot(slotName) || (slot.color && slot.color.a <= 0)) continue;
+
+        const attachment = slot.getAttachment();
+        if (!attachment) continue;
+
+        try {
+          if (attachment.region || (attachment.color && attachment.computeWorldVertices && !attachment.triangles)) {
+            if (attachment.color && attachment.color.a <= 0) continue;
+            const worldVertices = new Float32Array(8);
+            attachment.computeWorldVertices(slot, worldVertices, 0, 2);
+            if (isPointInPolygon(worldX, worldY, worldVertices)) return true;
+          } else if (attachment.triangles || (attachment.worldVerticesLength && attachment.computeWorldVertices)) {
+            if (attachment.color && attachment.color.a <= 0) continue;
+            const count = attachment.worldVerticesLength || 0;
+            if (count > 0) {
+              const worldVertices = new Float32Array(count);
+              attachment.computeWorldVertices(slot, 0, count, worldVertices, 0, 2);
+              const tris = attachment.triangles;
+              if (tris && tris.length >= 3) {
+                for (let t = 0; t + 2 < tris.length; t += 3) {
+                  const a = tris[t] * 2;
+                  const b = tris[t + 1] * 2;
+                  const c = tris[t + 2] * 2;
+                  if (isPointInTriangle(
+                    worldX, worldY,
+                    worldVertices[a], worldVertices[a + 1],
+                    worldVertices[b], worldVertices[b + 1],
+                    worldVertices[c], worldVertices[c + 1]
+                  )) {
+                    return true;
+                  }
+                }
+              } else if (isPointInPolygon(worldX, worldY, worldVertices)) {
+                return true;
+              }
+            }
+          }
+        } catch {
+          // Continue checking other attachments
+        }
+      }
+
+      // Fallback: check against trimmed character bounds
+      const bounds = player._trimmedBounds || computeTrimmedBounds(skeleton);
+      if (bounds) {
+        const minX = bounds.offset.x;
+        const maxX = bounds.offset.x + (bounds.size.x || bounds.size.width);
+        const minY = bounds.offset.y;
+        const maxY = bounds.offset.y + (bounds.size.y || bounds.size.height);
+        if (worldX >= minX && worldX <= maxX && worldY >= minY && worldY <= maxY) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function isMotionAnimationName(name) {
+      if (!name) return false;
+      const n = name.toLowerCase();
+      return n === "motion" || n.startsWith("motion") || n === "touch" || n === "action" || n.startsWith("m01") || n.startsWith("m1") || n.startsWith("react");
+    }
+
+    function isIdleAnimationName(name) {
+      if (!name) return false;
+      const n = name.toLowerCase();
+      return n === "idle" || n.startsWith("idle") || n.includes("idle") || n === "stand" || n === "loop";
+    }
+
+    function findMotionAnimation(player) {
+      const anims = (player && player.skeleton && player.skeleton.data && player.skeleton.data.animations) || [];
+      const exact = anims.find(a => a.name.toLowerCase() === "motion");
+      if (exact) return exact.name;
+      const match = anims.find(a => isMotionAnimationName(a.name));
+      return match ? match.name : null;
+    }
+
+    function findIdleAnimation(player) {
+      const anims = (player && player.skeleton && player.skeleton.data && player.skeleton.data.animations) || [];
+      const exact = anims.find(a => a.name.toLowerCase() === "idle");
+      if (exact) return exact.name;
+      const match = anims.find(a => isIdleAnimationName(a.name));
+      return match ? match.name : (anims[0] ? anims[0].name : "idle");
+    }
+
+    function canTriggerCharacterMotion(player) {
+      if (!player || player.paused || !player.animationState) return false;
+      const state = player.animationState;
+      const current = state.getCurrent(0);
+      if (!current || !current.animation) return false;
+
+      if (!isIdleAnimationName(current.animation.name) || current.next) return false;
+      return !!findMotionAnimation(player);
+    }
+
+    function playCharacterMotion(player) {
+      if (!canTriggerCharacterMotion(player)) return false;
+      const state = player.animationState;
+      const motionName = findMotionAnimation(player);
+      if (!motionName) return false;
+
+      const current = state.getCurrent(0);
+      const currentName = current && current.animation ? current.animation.name : "idle";
+      const idleName = isIdleAnimationName(currentName) ? currentName : (findIdleAnimation(player) || "idle");
+      const motionAnim = state.data && state.data.skeletonData ? state.data.skeletonData.findAnimation(motionName) : null;
+      const duration = (motionAnim && motionAnim.duration) || 0;
+
+      // Play motion once (non-looping), then immediately queue idle with delay
+      const entry = state.setAnimation(0, motionName, false);
+      state.addAnimation(0, idleName, true, duration);
+
+      const animSelect = document.getElementById("animSelect");
+      if (animSelect) animSelect.value = motionName;
+      notifyAnimationAspect(motionName);
+
+      if (entry) {
+        entry.listener = {
+          complete: () => {
+            const sel = document.getElementById("animSelect");
+            if (sel) sel.value = idleName;
+            notifyAnimationAspect(idleName);
+          }
+        };
+      }
+      console.log("[DMascot] Triggered character click motion:", motionName, "-> returning to", idleName);
+      return true;
+    }
+
+    function reframeMascotCamera(player, snapImmediate = true) {
+      if (!player || !player.skeleton || !player.sceneRenderer || !player.sceneRenderer.camera) return;
+      const cam = player.sceneRenderer.camera;
+
+      if (typeof player.skeleton.updateWorldTransform === "function") {
+        player.skeleton.updateWorldTransform();
+      }
+
+      const bounds = computeTrimmedBounds(player.skeleton, true);
+      if (!bounds) return;
+
+      player._trimmedBounds = bounds;
+      const charW = bounds.size.width;
+      const charH = bounds.size.height;
+      const targetX = bounds.centerX;
+      const targetY = bounds.centerY;
+
+      const viewportW = cam.viewportWidth || (player.canvas ? player.canvas.width : window.innerWidth);
+      const viewportH = cam.viewportHeight || (player.canvas ? player.canvas.height : window.innerHeight);
+
+      // Fit character comfortably inside window (~85% of viewport)
+      const zoomX = charW / Math.max(viewportW * 0.85, 1);
+      const zoomY = charH / Math.max(viewportH * 0.85, 1);
+      let fitZoom = Math.max(zoomX, zoomY);
+
+      if (!Number.isFinite(fitZoom) || fitZoom <= 0) fitZoom = 1.0;
+
+      if (!player._manualCamera) {
+        player._manualCamera = { x: targetX, y: targetY, zoom: fitZoom, baseZoom: fitZoom };
+      } else {
+        player._manualCamera.x = targetX;
+        player._manualCamera.y = targetY;
+        player._manualCamera.zoom = fitZoom;
+      }
+      if (!player._idleCamera && isIdleAnimationName(currentAnimationName)) {
+        player._idleCamera = { x: targetX, y: targetY, zoom: fitZoom };
+      }
+      player._followAnchorX = targetX;
+      player._followAnchorY = targetY;
+
+      if (snapImmediate) {
+        const effectiveZoom = fitZoom / charZoom;
+        cam.position.x = targetX + (panOffsetX * effectiveZoom);
+        cam.position.y = targetY + (panOffsetY * effectiveZoom);
+        cam.zoom = effectiveZoom;
+        cam.update();
+      }
+
+      if (typeof player.drawFrame === "function") {
+        player.drawFrame(false);
+      }
+    }
+
+    function autoFrameSpinePlayer(player) {
+      reframeMascotCamera(player, true);
+    }
+
+    function updateMascotCamera(player, playDelta) {
+      if (!player || !player.sceneRenderer || !player.sceneRenderer.camera) return;
+      const cam = player.sceneRenderer.camera;
+      const dt = playDelta || 0.016;
+
+      if (!player._manualCamera) {
+        reframeMascotCamera(player, true);
+        return;
+      }
+
+      const mCam = player._manualCamera;
+
+      if (isFollowActive && player.skeleton) {
+        spineFrameCounter++;
+        if (spineFrameCounter % 2 === 0) {
+          const isIdle = isIdleAnimationName(currentAnimationName);
+          const bounds = computeTrimmedBounds(player.skeleton, true);
+
+          if (bounds) {
+            const targetX = bounds.centerX;
+            const targetY = bounds.centerY;
+
+            if (isIdle) {
+              const base = player._idleCamera || { x: targetX, y: targetY, zoom: mCam.zoom };
+              const dist = Math.hypot(targetX - base.x, targetY - base.y);
+              if (dist > 30) {
+                mCam.x += (targetX - mCam.x) * Math.min(1.0, dt * 5.0);
+                mCam.y += (targetY - mCam.y) * Math.min(1.0, dt * 5.0);
+              } else {
+                mCam.x += (base.x - mCam.x) * Math.min(1.0, dt * 5.0);
+                mCam.y += (base.y - mCam.y) * Math.min(1.0, dt * 5.0);
+              }
+            } else {
+              const anchorX = player._followAnchorX !== undefined ? player._followAnchorX : targetX;
+              const anchorY = player._followAnchorY !== undefined ? player._followAnchorY : targetY;
+              const distFromAnchor = Math.hypot(targetX - anchorX, targetY - anchorY);
+
+              if (distFromAnchor > 250) {
+                player._followAnchorX = targetX;
+                player._followAnchorY = targetY;
+                mCam.x = targetX;
+                mCam.y = targetY;
+              } else if (distFromAnchor > 80) {
+                player._followAnchorX = anchorX + (targetX - anchorX) * Math.min(1.0, dt * 6.0);
+                player._followAnchorY = anchorY + (targetY - anchorY) * Math.min(1.0, dt * 6.0);
+                mCam.x += (player._followAnchorX - mCam.x) * Math.min(1.0, dt * 8.0);
+                mCam.y += (player._followAnchorY - mCam.y) * Math.min(1.0, dt * 8.0);
+              } else {
+                mCam.x += (anchorX - mCam.x) * Math.min(1.0, dt * 6.0);
+                mCam.y += (anchorY - mCam.y) * Math.min(1.0, dt * 6.0);
+              }
+            }
+          }
+        }
+      }
+
+      const effectiveZoom = mCam.zoom / charZoom;
+      cam.position.x = mCam.x + (panOffsetX * effectiveZoom);
+      cam.position.y = mCam.y + (panOffsetY * effectiveZoom);
+      cam.zoom = effectiveZoom;
+      cam.update();
+    }
+
+    function playCutsceneSequence(player, cutClips) {
+      const p = player || spinePlayer;
+      if (!p || !p.animationState || !cutClips || cutClips.length === 0) return;
+      currentAnimationName = cutClips[0];
+      p.paused = false;
+      if (p.play) p.play();
+
+      if (p.animationState && p.animationState.data) {
+        p.animationState.data.defaultMix = 0;
+      }
+      if (p.skeleton) {
+        p.skeleton.setToSetupPose();
+      }
+
+      p.animationState.setAnimation(0, cutClips[0], false);
+      for (let i = 1; i < cutClips.length - 1; i++) {
+        p.animationState.addAnimation(0, cutClips[i], false, 0);
+      }
+      p.animationState.addAnimation(0, cutClips[cutClips.length - 1], true, 0);
+
+      if (p.skeleton) {
+        p.animationState.apply(p.skeleton);
+        p.skeleton.updateWorldTransform();
+      }
+
+      if (typeof p.animationState.clearListeners === "function") {
+        p.animationState.clearListeners();
+      }
+      if (typeof p.animationState.addListener === "function") {
+        p.animationState.addListener({
+          start: (entry) => {
+            if (entry && entry.animation) {
+              currentAnimationName = entry.animation.name;
+              if (p.skeleton) {
+                p.skeleton.updateWorldTransform();
+                reframeMascotCamera(p, true);
+              }
+            }
+          }
+        });
+      }
+
+      notifyAnimationAspect(cutClips[0]);
+
+      if (p.skeleton) {
+        reframeMascotCamera(p, true);
+      }
+    }
+
+    function playSpineAnimation(player, animName, isLoop = true) {
+      const p = player || spinePlayer;
+      if (!p) return;
+      currentAnimationName = animName;
+      try {
+        p.paused = false;
+        if (p.play) p.play();
+
+        if (p.animationState && p.animationState.data) {
+          p.animationState.data.defaultMix = 0;
+        }
+        if (p.skeleton) {
+          p.skeleton.setToSetupPose();
+        }
+
+        if (p.setAnimation) {
+          try {
+            p.setAnimation(animName, isLoop);
+          } catch (e1) {
+            if (p.animationState) p.animationState.setAnimation(0, animName, isLoop);
+          }
+        } else if (p.animationState) {
+          p.animationState.setAnimation(0, animName, isLoop);
+        }
+
+        if (p.animationState && p.skeleton) {
+          p.animationState.apply(p.skeleton);
+          p.skeleton.updateWorldTransform();
+        }
+
+        notifyAnimationAspect(animName);
+
+        if (p.skeleton) {
+          reframeMascotCamera(p, true);
+        }
+      } catch (err) {
+        console.warn("[DMascot] Error playing animation:", err);
+      }
+    }
+
+    const spineCont = document.getElementById("spineContainer");
+    const btnToggleFollow = document.getElementById("btnToggleFollow");
+    const btnToggleFraming = document.getElementById("btnToggleFraming");
+
+    if (btnToggleFollow) {
+      btnToggleFollow.addEventListener("click", () => {
+        isFollowActive = !isFollowActive;
+        btnToggleFollow.classList.toggle("btn-active", isFollowActive);
+        if (spinePlayer && spinePlayer.skeleton) {
+          reframeMascotCamera(spinePlayer, true);
+        }
+      });
+    }
+
+    function setFramingMode(active) {
+      isFramingMode = !!active;
+      if (btnToggleFraming) btnToggleFraming.classList.toggle("btn-active", isFramingMode);
+      if (spineCont) spineCont.classList.toggle("framing-active", isFramingMode);
+    }
+
+    if (btnToggleFraming) {
+      btnToggleFraming.addEventListener("click", async () => {
+        setFramingMode(!isFramingMode);
+        if (mascotId) {
+          try {
+            await fetch(`/api/dmascot/update/${mascotId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ framing_mode: isFramingMode })
+            });
+          } catch (e) {}
+        }
+      });
+    }
+
+    // Interactive Drag to Pan in Framing Mode & Character Click Detection
+    let clickDownPos = null;
+
+    spineCont.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      clickDownPos = { x: e.clientX, y: e.clientY, time: Date.now() };
+      if (isFramingMode) {
+        lastUserEditTime = Date.now();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        startPanOffsetX = panOffsetX;
+        startPanOffsetY = panOffsetY;
+        spineCont.classList.add("framing-dragging");
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (isPanning) {
+        lastUserEditTime = Date.now();
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        // Negative dx moves camera opposite so character follows mouse
+        panOffsetX = startPanOffsetX - dx * 2.5;
+        panOffsetY = startPanOffsetY + dy * 2.5;
+        return;
+      }
+      if (!isFramingMode && !isResizing && spinePlayer && spineCont) {
+        const canvas = spineCont.querySelector("canvas") || spineCont;
+        if (isCharacterHit(spinePlayer, e.clientX, e.clientY, canvas)) {
+          spineCont.style.cursor = "pointer";
+        } else {
+          spineCont.style.cursor = "default";
+        }
+      }
+    });
+
+    window.addEventListener("mouseup", (e) => {
+      if (e.button !== 0) return;
+      if (isPanning) {
+        lastUserEditTime = Date.now();
+        isPanning = false;
+        spineCont.classList.remove("framing-dragging");
+        scheduleSaveFraming();
+      } else if (!isFramingMode && clickDownPos && spinePlayer) {
+        const dist = Math.hypot(e.clientX - clickDownPos.x, e.clientY - clickDownPos.y);
+        const elapsed = Date.now() - clickDownPos.time;
+        if (dist < 12 && elapsed < 600) {
+          const canvas = spineCont.querySelector("canvas") || spineCont;
+          if (isCharacterHit(spinePlayer, e.clientX, e.clientY, canvas)) {
+            playCharacterMotion(spinePlayer);
+          }
+        }
+      }
+      clickDownPos = null;
+    });
+
+    window.addEventListener("resize", () => {
+      if (spinePlayer) {
+        autoFrameSpinePlayer(spinePlayer);
+      }
+    });
+
+    // Corner Resize Grip Handling
+    const resizeGrip = document.getElementById("resizeGrip");
+    let isResizing = false;
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let startWinW = 0;
+    let startWinH = 0;
+    let resizeDebounce = null;
+
+    if (resizeGrip) {
+      resizeGrip.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        isResizing = true;
+        resizeStartX = e.screenX;
+        resizeStartY = e.screenY;
+        startWinW = window.innerWidth;
+        startWinH = window.innerHeight;
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+        const dw = e.screenX - resizeStartX;
+        const dh = e.screenY - resizeStartY;
+        const targetW = Math.max(260, Math.min(2000, startWinW + dw));
+        const targetH = Math.max(260, Math.min(2000, startWinH + dh));
+        window.resizeTo(targetW, targetH);
+
+        clearTimeout(resizeDebounce);
+        resizeDebounce = setTimeout(async () => {
+          if (!mascotId) return;
+          try {
+            await fetch(`/api/dmascot/update/${mascotId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ custom_w: targetW, custom_h: targetH })
+            });
+          } catch (err) {}
+        }, 150);
+      });
+
+      window.addEventListener("mouseup", () => {
+        isResizing = false;
+      });
+    }
+
+    // Mouse Wheel to Zoom Character in Framing Mode
+    spineCont.addEventListener("wheel", (e) => {
+      if (!isFramingMode) return;
+      lastUserEditTime = Date.now();
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      charZoom = Math.max(0.2, Math.min(6.0, Math.round((charZoom + delta) * 100) / 100));
+      scheduleSaveFraming();
+    }, { passive: false });
+
+    function scheduleSaveFraming() {
+      lastUserEditTime = Date.now();
+      if (currentState) {
+        currentState.char_zoom = charZoom;
+        currentState.pan_x = panOffsetX;
+        currentState.pan_y = panOffsetY;
+      }
+      clearTimeout(framingSaveTimer);
+      framingSaveTimer = setTimeout(async () => {
+        if (!mascotId) return;
+        try {
+          await fetch(`/api/dmascot/update/${mascotId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              char_zoom: charZoom,
+              pan_x: panOffsetX,
+              pan_y: panOffsetY
+            })
+          });
+        } catch (e) {}
+      }, 200);
+    }
+
+    // Click-Through Button
+    document.getElementById("btnClickThrough").addEventListener("click", async () => {
+      if (!mascotId) return;
+      try {
+        await fetch(`/api/dmascot/update/${mascotId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ click_through: true })
+        });
+      } catch (e) {}
+    });
+
+    // Vertical size slider controls native Window Size
+    const sizeSlider = document.getElementById("sizeSlider");
+    let scaleDebounceTimer = null;
+
+    if (sizeSlider) {
+      sizeSlider.addEventListener("input", (e) => {
+        const newScale = parseFloat(e.target.value);
+        if (currentState) currentState.scale = newScale;
+
+        // Sync window scale to backend so Qt native window resizes
+        clearTimeout(scaleDebounceTimer);
+        scaleDebounceTimer = setTimeout(async () => {
+          if (!mascotId) return;
+          try {
+            await fetch(`/api/dmascot/update/${mascotId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ scale: newScale })
+            });
+          } catch (err) {}
+        }, 120);
+      });
+    }
+
+    async function initMascot() {
+      if (!mascotId) return;
+      try {
+        const res = await fetch(`/api/dmascot/info/${mascotId}`);
+        if (!res.ok) throw new Error("Failed to load mascot info");
+        const data = await res.json();
+        currentState = data.mascot;
+        const mod = data.mod;
+
+        document.title = `BD2 Mascot - ${currentState.mod_name}`;
+
+        if (sizeSlider && currentState.scale) {
+          sizeSlider.value = currentState.scale;
+        }
+        if (currentState.char_zoom !== undefined) charZoom = currentState.char_zoom;
+        if (currentState.pan_x !== undefined) panOffsetX = currentState.pan_x;
+        if (currentState.pan_y !== undefined) panOffsetY = currentState.pan_y;
+        if (currentState.framing_mode) setFramingMode(true);
+
+        // Find spine files case-insensitively
+        const files = mod.files || [];
+        const atlasFile = files.find(f => {
+          const fl = f.toLowerCase();
+          return fl.endsWith(".atlas") || fl.endsWith(".atlas.txt");
+        });
+        const skelFile = files.find(f => {
+          const fl = f.toLowerCase();
+          return fl.endsWith(".skel") || fl.endsWith(".skel.bytes") || fl.endsWith(".bytes") || fl.endsWith(".json");
+        });
+
+        if (!skelFile || !atlasFile) {
+          console.error("Missing Spine skeleton or atlas file in files:", files);
+          const c = document.getElementById("spineContainer");
+          if (c) {
+            c.innerHTML = `<div style="color:#ef4444; font-family:sans-serif; font-size:12px; padding:20px; background:rgba(0,0,0,0.85); border-radius:8px;">
+              ⚠️ Missing Spine files.<br>Atlas: ${atlasFile || 'None'}<br>Skel: ${skelFile || 'None'}<br>Files: ${(files || []).join(', ')}
+            </div>`;
+          }
+          return;
+        }
+
+        function encodeFolder(folderPath) {
+          return btoa(unescape(encodeURIComponent(folderPath)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+        }
+
+        const folderB64 = encodeFolder(mod.folder_path);
+        const atlasUrl = `/api/mod-assets/${folderB64}/${encodeURIComponent(atlasFile)}`;
+        const animUrl = `/api/mod-assets/${folderB64}/${encodeURIComponent(skelFile)}`;
+
+        const rawDataURIs = {};
+        (files || []).filter(f => f.toLowerCase().endsWith(".png")).forEach(png => {
+          const fullUrl = `/api/mod-assets/${folderB64}/${encodeURIComponent(png)}`;
+          rawDataURIs[png] = fullUrl;
+          rawDataURIs[png.replace(/\.png$/i, '')] = fullUrl;
+        });
+
+        const container = document.getElementById("spineContainer");
+        const config = {
+          atlasUrl: atlasUrl,
+          rawDataURIs: rawDataURIs,
+          premultipliedAlpha: false,
+          showControls: false,
+          showLoading: false,
+          backgroundColor: "#00000000",
+          alpha: true,
+          preserveDrawingBuffer: true,
+          viewport: {
+            padLeft: 0,
+            padRight: 0,
+            padTop: 50,
+            padBottom: 50,
+            transitionTime: 0,
+            animations: {}
+          },
+          update: (player, playDelta) => {
+            updateMascotCamera(player, playDelta);
+          },
+          error: (player, reason) => {
+            console.error("[Spine Error]", reason);
+            const c = document.getElementById("spineContainer");
+            if (c) {
+              c.innerHTML = `<div style="color:#ef4444; font-family:sans-serif; font-size:12px; padding:20px; background:rgba(0,0,0,0.85); border-radius:8px;">
+                ⚠️ Spine Load Failed:<br>${escapeHtml(String(reason))}
+              </div>`;
+            }
+          },
+          success: (player) => {
+            spinePlayer = player;
+            if (player.animationState && player.animationState.data) {
+              player.animationState.data.defaultMix = 0;
+            }
+            console.log("[DMascot] Spine Player loaded successfully!");
+
+            // Auto-frame character with proper zoom and centering
+            reframeMascotCamera(player, true);
+
+            const animations = (player.skeleton && player.skeleton.data && player.skeleton.data.animations) || [];
+            console.log("[DMascot] Available skeleton animations:", animations.map(a => a.name));
+            if (animations.length > 0) {
+              const priorityPatterns = [/^idle$/i, /idle/i, /^loop$/i, /loop/i, /^motion$/i, /^m01$/i, /^dating/i];
+              let defaultAnim = mod.default_animation || null;
+              if (!defaultAnim || !animations.some(a => a.name === defaultAnim)) {
+                for (const pat of priorityPatterns) {
+                  const match = animations.find(a => pat.test(a.name));
+                  if (match) { defaultAnim = match.name; break; }
+                }
+                if (!defaultAnim) defaultAnim = animations[0].name;
+              }
+
+              // Detect multi-part cutscenes (e.g. cut_1 -> cut_2 -> cut_3)
+              const cutClips = animations.map(a => a.name).filter(n => /^cut_?\d+$/i.test(n) || /cutscene_?\d+$/i.test(n));
+              if (cutClips.length > 1) {
+                cutClips.sort((a, b) => (parseInt(a.replace(/\D/g, ""), 10) || 0) - (parseInt(b.replace(/\D/g, ""), 10) || 0));
+              }
+
+              try {
+                if (cutClips.length > 1 && (!defaultAnim || cutClips.includes(defaultAnim))) {
+                  playCutsceneSequence(player, cutClips);
+                  console.log("[DMascot] Playing full cutscene sequence:", cutClips);
+                } else {
+                  playSpineAnimation(player, defaultAnim, true);
+                  console.log("[DMascot] Playing animation:", defaultAnim);
+                }
+              } catch (e) {
+                console.warn("[DMascot] Could not start animation:", e);
+              }
+
+              const animSelect = document.getElementById("animSelect");
+              if (animSelect) {
+                animSelect.innerHTML = "";
+                if (cutClips.length > 1) {
+                  const optSeq = document.createElement("option");
+                  optSeq.value = "__full_cutscene__";
+                  optSeq.textContent = `🎬 Full Cutscene (${cutClips.join(" → ")})`;
+                  animSelect.appendChild(optSeq);
+                }
+                animations.forEach(a => {
+                  const opt = document.createElement("option");
+                  opt.value = a.name;
+                  opt.textContent = a.name;
+                  if (a.name === defaultAnim && cutClips.length <= 1) opt.selected = true;
+                  animSelect.appendChild(opt);
+                });
+                animSelect.onchange = (e) => {
+                  const chosen = e.target.value;
+                  if (!chosen) return;
+                  if (chosen === "__full_cutscene__" && cutClips.length > 1) {
+                    playCutsceneSequence(player, cutClips);
+                    console.log("[DMascot] Switched to full cutscene sequence");
+                  } else {
+                    playSpineAnimation(player, chosen, true);
+                    console.log("[DMascot] Switched animation to:", chosen);
+                  }
+                };
+              }
+            }
+          }
+        };
+
+        const isBinary = skelFile.toLowerCase().endsWith(".skel") || skelFile.toLowerCase().endsWith(".bytes");
+        if (isBinary) {
+          config.binaryUrl = animUrl;
+        } else {
+          config.jsonUrl = animUrl;
+        }
+
+        spinePlayer = new spine.SpinePlayer(container, config);
+        startStatePolling();
+      } catch (err) {
+        console.error("Mascot load error:", err);
+      }
+    }
+
+    function applyState(state) {
+      currentState = state;
+      document.body.style.opacity = state.opacity ?? 1.0;
+
+      // Sync window scale slider
+      if (state.scale && sizeSlider && Math.abs(parseFloat(sizeSlider.value) - state.scale) > 0.02) {
+        sizeSlider.value = state.scale;
+      }
+
+      // Sync framing mode (e.g. from CLI or KWin shortcut)
+      if (state.framing_mode !== undefined && state.framing_mode !== isFramingMode) {
+        setFramingMode(state.framing_mode);
+      }
+      const isLocallyEditing = isFramingMode || isPanning || (Date.now() - lastUserEditTime < 2500);
+      if (!isLocallyEditing) {
+        if (state.char_zoom !== undefined && Math.abs(charZoom - state.char_zoom) > 0.05) {
+          charZoom = state.char_zoom;
+        }
+        if (state.pan_x !== undefined) {
+          panOffsetX = state.pan_x;
+        }
+        if (state.pan_y !== undefined) {
+          panOffsetY = state.pan_y;
+        }
+      }
+
+      // Sync animation actions (next/prev animation from shortcuts)
+      if (state.anim_trigger && state.anim_trigger !== lastAnimTrigger) {
+        lastAnimTrigger = state.anim_trigger;
+        if (state.anim_action === "play_motion" || state.anim_action === "motion") {
+          if (spinePlayer) playCharacterMotion(spinePlayer);
+        } else {
+          const animSelect = document.getElementById("animSelect");
+          if (animSelect && animSelect.options.length > 1) {
+            let currIdx = animSelect.selectedIndex;
+            if (state.anim_action === "next") {
+              currIdx = (currIdx + 1) % animSelect.options.length;
+            } else if (state.anim_action === "prev") {
+              currIdx = (currIdx - 1 + animSelect.options.length) % animSelect.options.length;
+            }
+            animSelect.selectedIndex = currIdx;
+            const chosen = animSelect.value;
+            if (spinePlayer && chosen) {
+              playSpineAnimation(spinePlayer, chosen, true);
+              console.log("[DMascot] Shortcut switched animation to:", chosen);
+            }
+          }
+        }
+      }
+
+      // Click-Through
+      if (state.click_through) {
+        document.getElementById("spineContainer").classList.add("click-through-active");
+      } else {
+        document.getElementById("spineContainer").classList.remove("click-through-active");
+      }
+    }
+
+    let pollTimer = null;
+    function startStatePolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        if (!mascotId) return;
+        try {
+          const res = await fetch(`/api/dmascot/info/${mascotId}`);
+          if (res.status === 404) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            document.body.innerHTML = '';
+            window.close();
+            return;
+          }
+          if (res.ok) {
+            const data = await res.json();
+            if (data.mascot) {
+              if (data.mascot.status === "closed" || data.mascot.status === "stopped") {
+                clearInterval(pollTimer);
+                pollTimer = null;
+                document.body.innerHTML = '';
+                window.close();
+                return;
+              }
+              applyState(data.mascot);
+            }
+          }
+        } catch (e) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }, 600);
+    }
+
+    // Close button
+    document.getElementById("btnCloseMascot").addEventListener("click", async () => {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      if (mascotId) {
+        try {
+          await fetch(`/api/dmascot/close/${mascotId}`, { method: "POST" });
+        } catch (e) {}
+      }
+      document.body.innerHTML = '';
+      window.close();
+    });
+
+    initMascot();
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #app { height: 100%; }
+
+html { color-scheme: dark; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  background-image: var(--page-glow);
+  color: var(--text-main);
+  word-spacing: 0.1em; /* the UI font sets its word gaps tight */
+  overflow: hidden;
+}
+
+button { font-family: inherit; font-size: inherit; color: inherit; background: transparent; border: none; cursor: pointer; appearance: none; }
+.chrome-toggle.on { color: var(--primary); background: var(--selected-bg); border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent); }
+/* keyboard focus only: mouse users see no ring, as in classic */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
+
+/* range sliders: a dim track with a blue thumb (the browser default draws a white track on a dark page) */
+input[type='range'] { -webkit-appearance: none; appearance: none; height: 18px; background: transparent; cursor: pointer; accent-color: var(--primary); }
+input[type='range']::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: rgba(var(--primary-rgb), 0.28); }
+input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--primary); border: 0; box-shadow: none; }
+input[type='range']::-moz-range-track { height: 4px; border-radius: 4px; background: rgba(var(--primary-rgb), 0.28); }
+input[type='range']::-moz-range-progress { height: 4px; border-radius: 4px; background: var(--primary); }
+input[type='range']::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--primary); border: 0; box-shadow: none; }
+input[type='range']:hover::-webkit-slider-thumb { background: var(--primary-hover); }
+
+/* checkboxes: a grey box when empty, the accent when checked (the native one is a white box) */
+input[type='checkbox'] { -webkit-appearance: none; appearance: none; flex: none; width: 16px; height: 16px; margin: 0; cursor: pointer; background-color: var(--tint-2); border: 1.5px solid color-mix(in srgb, var(--text-dim) 75%, transparent); border-radius: 4px; transition: background-color 0.12s, border-color 0.12s; }
+input[type='checkbox']:hover:not(:disabled) { border-color: var(--text-muted); background-color: var(--tint-3); }
+input[type='checkbox']:checked { background-color: var(--primary-solid); border-color: var(--primary-solid); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+input[type='checkbox']:disabled { opacity: 0.45; cursor: default; }
+
+input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--tint-4); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
+
+/* spinners, pulses and slides stop for people who ask for less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 6px var(--accent); }
+  50% { box-shadow: 0 0 14px var(--accent); }
+}
